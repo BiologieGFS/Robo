@@ -2,318 +2,212 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Roboter Augen Simulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dr. med. Frida Puls | Internistische Facharztpraxis Calw</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            background-color: #000;
-            margin: 0;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            touch-action: none;
-        }
-
-        .face-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 40px;
-            transition: transform 0.2s ease;
-        }
-
-        .robot-container {
-            display: flex;
-            gap: 60px;
-            perspective: 1000px;
-        }
-
-        .eye {
-            width: 220px;
-            height: 220px;
-            background: #0a0a0a;
-            border: 2px solid #1a1a1a;
-            border-radius: 50%;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 40px rgba(0,0,0,0.9);
-        }
-
-        .brow {
-            position: absolute;
-            top: -25px;
-            left: -10%;
-            width: 120%;
-            height: 80px;
-            background: #000;
-            z-index: 20;
-            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .lid {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: #111;
-            z-index: 10;
-            transition: transform 0.1s ease;
-        }
-
-        .lid-top { top: 0; transform: translateY(-100%); }
-        .lid-bottom { bottom: 0; transform: translateY(100%); }
-
-        .pupil {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 85px;
-            height: 85px;
-            background: radial-gradient(circle, #00f2ff 0%, #0077ff 70%, #001a33 100%);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 35px #00f2ff;
-            transition: all 0.4s cubic-bezier(0.1, 0.5, 0.5, 1);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        /* Herz-Icon via SVG */
-        .heart-icon {
-            width: 70%;
-            height: 70%;
-            fill: #ff4baf;
-            display: none;
-            filter: drop-shadow(0 0 10px #ff4baf);
-        }
-
-        .mouth-container {
-            width: 150px;
-            height: 60px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-        }
-
-        /* Standardmäßig Lächeln */
-        .mouth {
-            width: 80px; 
-            height: 30px; 
-            border-radius: 0 0 60px 60px; 
-            background: transparent;
-            border-bottom: 6px solid #00f2ff;
-            box-shadow: 0 8px 15px rgba(0, 242, 255, 0.4);
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        /* --- Emotionen --- */
-        
-        /* Streichel-Modus (Liebe) */
-        .in-love .pupil { 
-            background: transparent; 
-            box-shadow: none; 
-            transform: translate(-50%, -50%) scale(1.3);
-        }
-        .in-love .heart-icon { display: block; }
-        .in-love .mouth { width: 100px; height: 40px; border-bottom-width: 8px; }
-        .in-love .face-container { animation: purr 0.1s infinite; }
-
-        @keyframes purr {
-            0% { transform: translate(1px, 1px); }
-            100% { transform: translate(-1px, -1px); }
-        }
-
-        .thinking #eyeLeft .brow { transform: translateY(35px) rotate(-8deg); }
-        .thinking .mouth { width: 40px; height: 4px; border-radius: 10px; border-bottom: 6px solid #00f2ff; }
-
-        .curious .pupil { width: 110px; height: 110px; }
-        .curious .mouth { width: 25px; height: 25px; border-radius: 50%; border: 4px solid #00f2ff; }
-
-        @keyframes dizzyAnim {
-            0% { transform: translate(-50%, -50%) rotate(0deg) translateX(25px) rotate(0deg); }
-            100% { transform: translate(-50%, -50%) rotate(360deg) translateX(25px) rotate(-360deg); }
-        }
-        .dizzy .pupil { animation: dizzyAnim 0.4s linear infinite; }
-        .dizzy .mouth { width: 50px; height: 10px; border-radius: 50%; border: 4px solid #00f2ff; }
-
-        .irritated .pupil { width: 30px; height: 30px; }
-        .irritated .mouth { width: 20px; height: 20px; border-radius: 50%; border: 4px solid #00f2ff; }
-
-        .blinking .lid-top { transform: translateY(0) !important; }
-        .blinking .lid-bottom { transform: translateY(0) !important; }
-
-        .controls {
-            position: fixed;
-            bottom: 10px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .controls:hover { opacity: 1; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="components/navbar.js"></script>
+    <script src="components/footer.js"></script>
 </head>
-<body>
+<body class="bg-gray-50 font-sans">
+    <custom-navbar></custom-navbar>
 
-    <div class="face-container" id="face">
-        <div class="robot-container" id="robotBody">
-            <div class="eye" id="eyeLeft">
-                <div class="brow"></div>
-                <div class="lid lid-top"></div>
-                <div class="pupil">
-                    <svg class="heart-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+    <main class="container mx-auto px-4 py-8">
+        <!-- Hero Section -->
+        <section class="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-8 md:p-12 mb-12">
+            <div class="flex flex-col md:flex-row items-center">
+                <div class="md:w-1/2 mb-8 md:mb-0">
+                    <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">Herzlich Willkommen</h1>
+                    <p class="text-xl text-gray-600 mb-6">in der internistischen Facharztpraxis von Dr. med. Frida Puls in Calw</p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <a href="#termin" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium text-center transition duration-300">
+                            Termin vereinbaren
+                        </a>
+                        <a href="#kontakt" class="border border-blue-600 text-blue-600 hover:bg-blue-50 px-6 py-3 rounded-lg font-medium text-center transition duration-300">
+                            Kontakt aufnehmen
+                        </a>
+                    </div>
                 </div>
-                <div class="lid lid-bottom"></div>
-            </div>
-            <div class="eye" id="eyeRight">
-                <div class="brow"></div>
-                <div class="lid lid-top"></div>
-                <div class="pupil">
-                    <svg class="heart-icon" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                <div class="md:w-1/2">
+                    <img src="http://static.photos/medical/640x360/42" alt="Praxisräume" class="rounded-lg shadow-lg w-full">
                 </div>
-                <div class="lid lid-bottom"></div>
             </div>
-        </div>
+        </section>
 
-        <div class="mouth-container" id="petZone">
-            <div class="mouth" id="mouth"></div>
-        </div>
-    </div>
+        <!-- Services Section -->
+        <section class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Unsere Leistungen</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300">
+                    <div class="text-blue-600 mb-4">
+                        <i data-feather="heart" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Kardiologische Diagnostik</h3>
+                    <p class="text-gray-600">Umfassende Untersuchungen des Herz-Kreislauf-Systems mit modernsten Methoden.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300">
+                    <div class="text-blue-600 mb-4">
+                        <i data-feather="activity" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Check-up Untersuchungen</h3>
+                    <p class="text-gray-600">Ganzkörperuntersuchungen zur Früherkennung von Erkrankungen.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300">
+                    <div class="text-blue-600 mb-4">
+                        <i data-feather="thermometer" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Diabetes Management</h3>
+                    <p class="text-gray-600">Individuelle Betreuung und Behandlung von Diabetes-Patienten.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300">
+                    <div class="text-blue-600 mb-4">
+                        <i data-feather="shield" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Impfberatung</h3>
+                    <p class="text-gray-600">Umfassende Beratung und Durchführung von Schutzimpfungen.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300">
+                    <div class="text-blue-600 mb-4">
+                        <i data-feather="clipboard" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Vorsorgeuntersuchungen</h3>
+                    <p class="text-gray-600">Gesundheits-Check-ups entsprechend den aktuellen Leitlinien.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition duration-300">
+                    <div class="text-blue-600 mb-4">
+                        <i data-feather="help-circle" class="w-10 h-10"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-2">Individuelle Beratung</h3>
+                    <p class="text-gray-600">Persönliche Gesundheitsberatung und Therapieplanung.</p>
+                </div>
+            </div>
+        </section>
 
-    <div class="controls">
-        <button onclick="requestPermission()" class="bg-gray-800 text-white px-4 py-2 rounded text-xs">Sensoren Kalibrieren</button>
-    </div>
+        <!-- About Section -->
+        <section class="mb-16 bg-white rounded-xl shadow-md overflow-hidden">
+            <div class="flex flex-col md:flex-row">
+                <div class="md:w-1/3">
+                    <img src="http://static.photos/people/640x360/23" alt="Dr. med. Frida Puls" class="w-full h-full object-cover">
+                </div>
+                <div class="md:w-2/3 p-8">
+                    <h2 class="text-3xl font-bold text-gray-800 mb-4">Über Dr. med. Frida Puls</h2>
+                    <p class="text-gray-600 mb-4">
+                        Fachärztin für Innere Medizin mit langjähriger Erfahrung in der Diagnostik und Behandlung von internistischen Erkrankungen.
+                    </p>
+                    <ul class="space-y-2 mb-6">
+                        <li class="flex items-start">
+                            <i data-feather="check" class="text-green-500 mr-2 mt-1"></i>
+                            <span class="text-gray-600">Studium der Humanmedizin an der Universität Heidelberg</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-feather="check" class="text-green-500 mr-2 mt-1"></i>
+                            <span class="text-gray-600">Fachärztliche Weiterbildung am Klinikum Stuttgart</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-feather="check" class="text-green-500 mr-2 mt-1"></i>
+                            <span class="text-gray-600">Zusatzqualifikationen in Kardiologie und Diabetologie</span>
+                        </li>
+                        <li class="flex items-start">
+                            <i data-feather="check" class="text-green-500 mr-2 mt-1"></i>
+                            <span class="text-gray-600">Mitglied der Deutschen Gesellschaft für Innere Medizin</span>
+                        </li>
+                    </ul>
+                    <p class="text-gray-600">
+                        Mein Ziel ist es, jeden Patienten individuell und mit größter Sorgfalt zu behandeln. Moderne Medizin und menschliche Zuwendung gehen in meiner Praxis Hand in Hand.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Appointment Section -->
+        <section id="termin" class="mb-16 bg-blue-50 rounded-xl p-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Terminvereinbarung</h2>
+            <div class="max-w-2xl mx-auto">
+                <form class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="name" class="block text-gray-700 mb-1">Name</label>
+                            <input type="text" id="name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="phone" class="block text-gray-700 mb-1">Telefon</label>
+                            <input type="tel" id="phone" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label for="email" class="block text-gray-700 mb-1">E-Mail</label>
+                        <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="date" class="block text-gray-700 mb-1">Bevorzugter Termin</label>
+                        <input type="date" id="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label for="message" class="block text-gray-700 mb-1">Ihre Nachricht (optional)</label>
+                        <textarea id="message" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition duration-300">
+                        Termin anfragen
+                    </button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="kontakt" class="mb-16">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Kontakt & Anfahrt</h2>
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="md:w-1/2 bg-white p-6 rounded-xl shadow-md">
+                    <h3 class="text-xl font-semibold mb-4">Praxisadresse</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <i data-feather="map-pin" class="text-blue-600 mr-3 mt-1"></i>
+                            <div>
+                                <p class="font-medium">Dr. med. Frida Puls</p>
+                                <p class="text-gray-600">Musterstraße 123</p>
+                                <p class="text-gray-600">75365 Calw</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i data-feather="phone" class="text-blue-600 mr-3 mt-1"></i>
+                            <div>
+                                <p class="font-medium">Telefon</p>
+                                <p class="text-gray-600">07051 1234567</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i data-feather="mail" class="text-blue-600 mr-3 mt-1"></i>
+                            <div>
+                                <p class="font-medium">E-Mail</p>
+                                <p class="text-gray-600">info@praxis-dr-puls.de</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start">
+                            <i data-feather="clock" class="text-blue-600 mr-3 mt-1"></i>
+                            <div>
+                                <p class="font-medium">Öffnungszeiten</p>
+                                <p class="text-gray-600">Mo, Di, Do: 8:00 - 12:00 & 14:00 - 17:00</p>
+                                <p class="text-gray-600">Mi, Fr: 8:00 - 12:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="md:w-1/2">
+                    <div class="h-full rounded-xl overflow-hidden">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2624.99144060821!2d8.681931599999999!3d48.8583701!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x479a721c929e3a7f%3A0x7d1f4a3a0e9a3b1c!2sCalw!5e0!3m2!1sde!2sde!4v1620000000000!5m2!1sde!2sde" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" class="min-h-[300px]"></iframe>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <custom-footer></custom-footer>
 
     <script>
-        const face = document.getElementById('face');
-        const pupils = document.querySelectorAll('.pupil');
-        const petZone = document.getElementById('petZone');
-        
-        let isLocked = false;
-        let petCount = 0;
-        let petTimer;
-
-        // --- Autonomes Verhalten ---
-        function autonomousBehavior() {
-            if (isLocked) return;
-
-            const r = Math.random();
-
-            if (r < 0.15) {
-                triggerEmotion('thinking', 2000);
-            } else if (r < 0.25) {
-                triggerEmotion('curious', 1500);
-            } else {
-                // Normales Umschauen (mit Lächeln als Basis)
-                const x = (Math.random() - 0.5) * 70;
-                const y = (Math.random() - 0.5) * 50;
-                updatePupils(x, y);
-            }
-
-            setTimeout(autonomousBehavior, Math.random() * 2500 + 1500);
-        }
-
-        function triggerEmotion(className, duration) {
-            if (isLocked) return;
-            face.classList.add(className);
-            setTimeout(() => {
-                face.classList.remove(className);
-            }, duration);
-        }
-
-        function updatePupils(x, y) {
-            pupils.forEach(pupil => {
-                if (!face.classList.contains('dizzy') && !face.classList.contains('in-love')) {
-                    pupil.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
-                }
-            });
-        }
-
-        // --- Streichel-Logik (Petting) ---
-        petZone.addEventListener('pointermove', (e) => {
-            if (face.classList.contains('in-love')) return;
-            
-            petCount++;
-            if (petCount > 20) {
-                startLoveMode();
-            }
-        });
-
-        function startLoveMode() {
-            isLocked = true;
-            petCount = 0;
-            face.className = 'face-container in-love';
-            
-            setTimeout(() => {
-                face.classList.remove('in-love');
-                isLocked = false;
-                autonomousBehavior();
-            }, 4000);
-        }
-
-        // --- Irritations-Reaktion (Klick/Touch außerhalb Mund) ---
-        document.addEventListener('pointerdown', (e) => {
-            if (e.target.closest('#petZone') || isLocked) return;
-            
-            isLocked = true;
-            face.className = 'face-container irritated'; 
-
-            const rect = face.getBoundingClientRect();
-            const x = ((e.clientX - (rect.left + rect.width / 2)) / window.innerWidth) * 100;
-            const y = ((e.clientY - (rect.top + rect.height / 2)) / window.innerHeight) * 80;
-
-            updatePupils(x, y);
-
-            setTimeout(() => {
-                isLocked = false;
-                face.classList.remove('irritated');
-                autonomousBehavior();
-            }, 2000);
-        });
-
-        // --- Schütteln ---
-        function handleMotion(event) {
-            const acc = event.accelerationIncludingGravity;
-            if (!acc) return;
-            const totalAcc = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
-
-            if (totalAcc > 28 && !isLocked) {
-                isLocked = true;
-                face.className = 'face-container dizzy';
-                setTimeout(() => {
-                    isLocked = false;
-                    face.classList.remove('dizzy');
-                    autonomousBehavior();
-                }, 5000);
-            }
-        }
-
-        function requestPermission() {
-            if (typeof DeviceMotionEvent.requestPermission === 'function') {
-                DeviceMotionEvent.requestPermission().then(resp => {
-                    if (resp == 'granted') window.addEventListener('devicemotion', handleMotion);
-                });
-            } else {
-                window.addEventListener('devicemotion', handleMotion);
-            }
-        }
-
-        function blink() {
-            face.classList.add('blinking');
-            setTimeout(() => {
-                face.classList.remove('blinking');
-                setTimeout(blink, Math.random() * 6000 + 2000);
-            }, 120);
-        }
-
-        window.onload = () => {
-            autonomousBehavior();
-            blink();
-        };
+        feather.replace();
     </script>
+    <script src="script.js"></script>
 </body>
 </html>
-
